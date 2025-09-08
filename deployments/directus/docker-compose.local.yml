@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  directus:
+    image: directus/directus:latest
+    container_name: directus-local
+    ports:
+      - "8055:8055"
+    environment:
+      # Database configuration
+      DB_CLIENT: pg
+      DB_HOST: 10.0.20.3
+      DB_PORT: 5432
+      DB_DATABASE: supply
+      DB_USER: supply_user
+      DB_PASSWORD: supply_s3cur3_p@ss
+      
+      # Admin credentials
+      ADMIN_EMAIL: brad@bradjohnson.ai
+      ADMIN_PASSWORD: Choogu9i;
+      
+      # Security keys
+      KEY: ${DIRECTUS_KEY:-6b5c3a7d-8e9f-4a1b-9c2d-3e4f5a6b7c8d}
+      SECRET: ${DIRECTUS_SECRET:-a1b2c3d4-e5f6-7890-abcd-ef1234567890}
+      
+      # Public URL
+      PUBLIC_URL: http://localhost:8055
+      
+      # GCS Storage configuration
+      STORAGE_LOCATIONS: gcs
+      STORAGE_GCS_DRIVER: gcs
+      STORAGE_GCS_KEY_FILENAME: /app/gcs-key.json
+      STORAGE_GCS_BUCKET: supply-assets-public
+      
+      # Optional: Enable debug logging
+      LOG_LEVEL: info
+      
+      # CORS Configuration
+      CORS_ENABLED: 'true'
+      CORS_ORIGIN: 'http://10.0.20.150:5173,http://10.0.20.150:3001,http://localhost:5173,http://127.0.0.1:5173,http://172.20.0.3:5173'
+      CORS_METHODS: 'GET,HEAD,OPTIONS,POST,PATCH,DELETE'
+      CORS_ALLOWED_HEADERS: 'Content-Type,Authorization'
+      CORS_EXPOSED_HEADERS: 'Content-Range,Content-Length'
+      CORS_CREDENTIALS: 'true'
+      
+    volumes:
+      # Mount the GCS service account key
+      - ~/directus-gcs-key.json:/app/gcs-key.json:ro
+      # Optional: Persist uploads locally as cache
+      - directus-uploads:/directus/uploads
+      # Optional: Persist extensions
+      - directus-extensions:/directus/extensions
+    
+    restart: unless-stopped
+    networks:
+      - directus-network
+
+networks:
+  directus-network:
+    driver: bridge
+
+volumes:
+  directus-uploads:
+  directus-extensions:
